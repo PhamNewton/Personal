@@ -9,32 +9,23 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <style>
-        :root {
-            --bg-1: #0f172a;
-            --bg-2: #1e1b4b;
-            --bg-3: #2e1065;
-        }
-
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
-            background: linear-gradient(45deg, var(--bg-1), var(--bg-2), var(--bg-3));
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            /* Classic White Marble Background */
+            background: linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), 
+                        url('https://images.unsplash.com/photo-1582234372131-030612476579?auto=format&fit=crop&q=80&w=2000');
+            background-size: cover;
+            background-position: center;
+            color: #1a1a1a;
+            /* Serif font for the Greek/Stoic feel */
+            font-family: "Georgia", "Times New Roman", serif;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         .top-nav {
@@ -52,11 +43,11 @@
             font-size: 32px;
             cursor: pointer;
             transition: transform 0.2s ease;
-            opacity: 0.8;
-            padding: 10px; /* Larger tap target */
+            opacity: 0.7;
+            padding: 10px;
         }
 
-        #fav-icon.active { color: #ff2d55; opacity: 1; transform: scale(1.2); }
+        #fav-icon.active { color: #8b0000; opacity: 1; transform: scale(1.2); }
 
         #display-container {
             flex: 1;
@@ -73,29 +64,33 @@
         }
 
         .quote-text {
-            font-weight: 800;
-            line-height: 1.1;
-            letter-spacing: -0.03em;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
             word-wrap: break-word;
         }
 
         #action-btn {
             margin-bottom: 80px;
             padding: 20px 40px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #000;
-            background: #fff;
+            letter-spacing: 0.15em;
+            color: #fff;
+            background: #1a1a1a; /* Dark stone contrast */
             border: none;
-            border-radius: 50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 4px; /* Minimalist squared edges */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             cursor: pointer;
             z-index: 10;
             -webkit-tap-highlight-color: transparent;
+            transition: transform 0.1s, background 0.2s;
         }
+
+        #action-btn:active { transform: scale(0.97); background: #000; }
 
         #fav-overlay {
             position: fixed;
@@ -103,8 +98,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.96);
-            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             z-index: 200;
             display: none;
             flex-direction: column;
@@ -116,20 +111,22 @@
         .fav-header {
             font-size: 1.5rem;
             font-weight: 800;
+            text-transform: uppercase;
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid #1a1a1a;
+            padding-bottom: 10px;
         }
 
         .fav-item {
-            background: rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.05);
             padding: 20px;
-            border-radius: 15px;
             margin-bottom: 15px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             line-height: 1.4;
-            border: 1px solid rgba(255,255,255,0.1);
+            border-left: 5px solid #1a1a1a;
         }
     </style>
 </head>
@@ -148,7 +145,7 @@
 
     <div id="fav-overlay">
         <div class="fav-header">
-            <span>Power Moves</span>
+            <span>The Archives</span>
             <span onclick="closeFavorites()" style="cursor:pointer; font-size: 2rem;">✕</span>
         </div>
         <div id="fav-list-container"></div>
@@ -158,7 +155,7 @@
 
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6meOOpBWoUSYs12Cfw7X071FgrouTQyFwWD7UshJZ_blZuj9PVnyxnbkkCL9XuCNLyT71FG9E-OP9/pub?output=csv';
-        const buttonLabels = ["Go. Get. Her", "Be brave for 10 seconds", "Do it", "Stop waiting for perfect"];
+        const buttonLabels = ["Go. Get. Her", "Be brave for 10 seconds", "Count down from 5 and act", "Stop waiting for perfect"];
         
         let quotes = [];
         let favorites = JSON.parse(localStorage.getItem('myMindsetFavs')) || [];
@@ -183,10 +180,10 @@
         }
 
         function adjustFontSize(text) {
-            let size = 2.6; 
-            if (text.length > 100) size = 1.6;
-            else if (text.length > 60) size = 2.0;
-            else if (text.length > 30) size = 2.3;
+            let size = 2.4; 
+            if (text.length > 100) size = 1.4;
+            else if (text.length > 60) size = 1.8;
+            else if (text.length > 30) size = 2.1;
             display.style.fontSize = size + "rem";
         }
 

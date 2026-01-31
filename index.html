@@ -3,96 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mindset Shifts</title>
+    <title>Mindset</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-    
     <style>
+        :root {
+            --bg-1: #0f172a;
+            --bg-2: #1e1b4b;
+            --bg-3: #2e1065;
+            --accent: #ffffff;
+        }
+
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
-            background-color: #000;
+            background: linear-gradient(45deg, var(--bg-1), var(--bg-2), var(--bg-3));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
             overflow: hidden;
-        }
-        .swiper {
-            width: 100%;
-            height: 100%;
-        }
-        .swiper-slide {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Container for the quote */
+        #display-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
             padding: 40px;
+            max-width: 500px;
+            width: 100%;
             box-sizing: border-box;
-            font-size: 1.8rem;
-            font-weight: 600;
-            line-height: 1.4;
+            transition: opacity 0.3s ease;
         }
-        /* Background gradient to keep it looking sharp */
-        .swiper-slide:nth-child(odd) {
-            background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+
+        .quote-text {
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.03em;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            margin-bottom: 20px;
         }
-        .swiper-slide:nth-child(even) {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+
+        /* Heart Icon */
+        #fav-icon {
+            position: absolute;
+            top: 60px;
+            right: 30px;
+            font-size: 32px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 10;
+        }
+        #fav-icon.active { color: #ff2d55; transform: scale(1.2); }
+
+        /* The Action Button */
+        #action-btn {
+            margin-bottom: 60px;
+            padding: 18px 36px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #000;
+            background: #fff;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s active, box-shadow 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #action-btn:active {
+            transform: scale(0.95);
+        }
+
+        #hint {
+            position: fixed;
+            bottom: 110px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            transition: opacity 1s;
         }
     </style>
 </head>
 <body>
 
-    <div class="swiper">
-        <div class="swiper-wrapper" id="quote-wrapper">
-            <div class="swiper-slide">Loading your mindset...</div>
-        </div>
+    <div id="fav-icon">♡</div>
+
+    <div id="display-container">
+        <div id="quote-display" class="quote-text">Loading...</div>
     </div>
 
+    <div id="hint">Tap anywhere to favorite</div>
+    <button id="action-btn">Go. Get. Her</button>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6meOOpBWoUSYs12Cfw7X071FgrouTQyFwWD7UshJZ_blZuj9PVnyxnbkkCL9XuCNLyT71FG9E-OP9/pub?output=csv';
+        const buttonLabels = ["Go. Get. Her", "Be brave for 10 seconds", "Do it", "Stop waiting for perfect"];
+        
+        let quotes = [];
+        let favorites = JSON.parse(localStorage.getItem('myMindsetFavs')) || [];
+        let currentQuote = "";
+        let labelIndex = 0;
 
-        async function initApp() {
+        const display = document.getElementById('quote-display');
+        const btn = document.getElementById('action-btn');
+        const favIcon = document.getElementById('fav-icon');
+        const container = document.getElementById('display-container');
+
+        async function loadData() {
             Papa.parse(sheetUrl, {
                 download: true,
                 header: false,
                 complete: function(results) {
-                    const quotes = results.data.flat().filter(q => q.trim() !== "");
-                    
-                    // Randomize the quotes
-                    const shuffledQuotes = quotes.sort(() => Math.random() - 0.5);
-                    
-                    renderQuotes(shuffledQuotes);
+                    quotes = results.data.flat().filter(q => q.trim() !== "");
+                    nextQuote();
                 }
             });
         }
 
-        function renderQuotes(quotes) {
-            const wrapper = document.getElementById('quote-wrapper');
-            wrapper.innerHTML = ''; // Clear loading message
-
-            quotes.forEach(quote => {
-                const slide = document.createElement('div');
-                slide.className = 'swiper-slide';
-                slide.textContent = quote;
-                wrapper.appendChild(slide);
-            });
-
-            // Initialize Swiper after quotes are added to the DOM
-            new Swiper('.swiper', {
-                direction: 'horizontal',
-                loop: true,
-                resistanceRatio: 0,
-            });
+        function nextQuote() {
+            // Fade effect
+            container.style.opacity = 0;
+            
+            setTimeout(() => {
+                currentQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                display.textContent = currentQuote;
+                updateFavIcon();
+                
+                // Update Button Label
+                labelIndex = (labelIndex + 1) % buttonLabels.length;
+                btn.textContent = buttonLabels[labelIndex];
+                
+                container.style.opacity = 1;
+            }, 250);
         }
 
-        initApp();
-    </script>
-</body>
-</html>
+        function updateFavIcon() {
+            if (favorites.includes(currentQuote)) {
+                favIcon.textContent = '❤️';
+                favIcon.classList.add('active');
+            } else {
+                favIcon.textContent = '♡';
+                favIcon.classList.remove('active');
+            }
+        }
+
+        function toggleFavorite() {
+            const index = favorites.indexOf(currentQuote);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(currentQuote);
+            }
+            localStorage.setItem('myMindsetFavs', JSON.stringify(favorites

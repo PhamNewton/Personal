@@ -163,7 +163,7 @@
         let quotes = [];
         let favorites = JSON.parse(localStorage.getItem('myMindsetFavs')) || [];
         let currentQuote = "";
-        let currentQuoteIndex = 0; // Tracks the sequential position
+        let currentQuoteIndex = 0; 
         let labelIndex = 0;
 
         const display = document.getElementById('quote-display');
@@ -177,13 +177,13 @@
                 download: true,
                 header: false,
                 complete: function(results) {
-                    quotes = results.data.flat().filter(q => q.trim() !== "");
-                    // Initial load starts at the first quote
+                    // Flatten and filter out empty rows
+                    quotes = results.data.flat().filter(q => q && q.trim() !== "");
+                    
                     if (quotes.length > 0) {
-                        currentQuote = quotes[0];
-                        display.textContent = currentQuote;
-                        adjustFontSize(currentQuote);
-                        updateFavIcon();
+                        renderQuote(0); // Load the very first item (Index 0)
+                    } else {
+                        display.textContent = "No quotes found.";
                     }
                 }
             });
@@ -197,22 +197,26 @@
             display.style.fontSize = size + "rem";
         }
 
+        function renderQuote(index) {
+            currentQuote = quotes[index];
+            display.textContent = currentQuote;
+            adjustFontSize(currentQuote);
+            updateFavIcon();
+            container.style.opacity = 1;
+        }
+
         function nextQuote() {
             if (quotes.length === 0) return;
             
             container.style.opacity = 0;
             setTimeout(() => {
-                // Increment index and loop back to start if at the end
+                // Sequential increment: 0 -> 1 -> 2 -> ... -> 0
                 currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
-                currentQuote = quotes[currentQuoteIndex];
                 
-                display.textContent = currentQuote;
-                adjustFontSize(currentQuote);
-                updateFavIcon();
+                renderQuote(currentQuoteIndex);
                 
                 labelIndex = (labelIndex + 1) % buttonLabels.length;
                 btn.textContent = buttonLabels[labelIndex];
-                container.style.opacity = 1;
             }, 250);
         }
 

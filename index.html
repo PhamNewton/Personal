@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="theme-color" content="#000000" />
+
+<title>Daily Affirmations</title>
+
+<style>
+  body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: Georgia, serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    padding: 32px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #text {
+    font-size: 2rem;
+    line-height: 1.4;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  #text.show {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<div id="text">Loading…</div>
+
+<script>
+  const SHEET_URL = https://docs.google.com/spreadsheets/d/e/2PACX-1vT6meOOpBWoUSYs12Cfw7X071FgrouTQyFwWD7UshJZ_blZuj9PVnyxnbkkCL9XuCNLyT71FG9E-OP9/pub?gid=0&single=true&output=csv;
+
+  let affirmations = [];
+  let index = 0;
+
+  const textEl = document.getElementById("text");
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function showAffirmation() {
+    textEl.classList.remove("show");
+
+    setTimeout(() => {
+      textEl.textContent = affirmations[index];
+      textEl.classList.add("show");
+    }, 300);
+  }
+
+  function nextAffirmation() {
+    index++;
+    if (index >= affirmations.length) {
+      shuffle(affirmations);
+      index = 0;
+    }
+    showAffirmation();
+
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  }
+
+  fetch(SHEET_URL)
+    .then(res => res.text())
+    .then(csv => {
+      const lines = csv.split("\n").slice(1);
+      affirmations = lines
+        .map(l => l.trim())
+        .filter(Boolean);
+
+      shuffle(affirmations);
+      index = 0;
+      showAffirmation();
+    })
+    .catch(() => {
+      textEl.textContent = "Failed to load affirmations";
+      textEl.classList.add("show");
+    });
+
+  document.body.addEventListener("click", nextAffirmation);
+</script>
+
+</body>
+</html>

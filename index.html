@@ -13,7 +13,6 @@
             --bg-1: #0f172a;
             --bg-2: #1e1b4b;
             --bg-3: #2e1065;
-            --accent: #ffffff;
         }
 
         body, html {
@@ -38,7 +37,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Container for the quote */
         #display-container {
             flex: 1;
             display: flex;
@@ -59,10 +57,8 @@
             line-height: 1.2;
             letter-spacing: -0.03em;
             text-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            margin-bottom: 20px;
         }
 
-        /* Heart Icon */
         #fav-icon {
             position: absolute;
             top: 60px;
@@ -74,10 +70,9 @@
         }
         #fav-icon.active { color: #ff2d55; transform: scale(1.2); }
 
-        /* The Action Button */
         #action-btn {
-            margin-bottom: 60px;
-            padding: 18px 36px;
+            margin-bottom: 80px;
+            padding: 20px 40px;
             font-size: 1.1rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -88,24 +83,16 @@
             border-radius: 50px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             cursor: pointer;
-            transition: transform 0.1s active, box-shadow 0.2s;
+            transition: transform 0.1s active;
             -webkit-tap-highlight-color: transparent;
         }
 
         #action-btn:active {
             transform: scale(0.95);
         }
-
-        #hint {
-            position: fixed;
-            bottom: 110px;
-            font-size: 0.8rem;
-            opacity: 0.5;
-            transition: opacity 1s;
-        }
     </style>
 </head>
-<body>
+<body onclick="toggleFavorite()">
 
     <div id="fav-icon">♡</div>
 
@@ -113,8 +100,7 @@
         <div id="quote-display" class="quote-text">Loading...</div>
     </div>
 
-    <div id="hint">Tap anywhere to favorite</div>
-    <button id="action-btn">Go. Get. Her</button>
+    <button id="action-btn" onclick="event.stopPropagation(); nextQuote()">Go. Get. Her</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
@@ -144,7 +130,6 @@
         }
 
         function nextQuote() {
-            // Fade effect
             container.style.opacity = 0;
             
             setTimeout(() => {
@@ -152,7 +137,6 @@
                 display.textContent = currentQuote;
                 updateFavIcon();
                 
-                // Update Button Label
                 labelIndex = (labelIndex + 1) % buttonLabels.length;
                 btn.textContent = buttonLabels[labelIndex];
                 
@@ -171,10 +155,19 @@
         }
 
         function toggleFavorite() {
+            if (!currentQuote || currentQuote === "Loading...") return;
+            
             const index = favorites.indexOf(currentQuote);
             if (index > -1) {
                 favorites.splice(index, 1);
             } else {
                 favorites.push(currentQuote);
             }
-            localStorage.setItem('myMindsetFavs', JSON.stringify(favorites
+            localStorage.setItem('myMindsetFavs', JSON.stringify(favorites));
+            updateFavIcon();
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

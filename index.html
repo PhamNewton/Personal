@@ -49,13 +49,14 @@
         }
 
         .nav-icon {
-            font-size: 28px;
+            font-size: 32px;
             cursor: pointer;
             transition: transform 0.2s ease;
             opacity: 0.8;
+            padding: 10px; /* Larger tap target */
         }
 
-        #fav-icon.active { color: #ff2d55; opacity: 1; transform: scale(1.1); }
+        #fav-icon.active { color: #ff2d55; opacity: 1; transform: scale(1.2); }
 
         #display-container {
             flex: 1;
@@ -65,7 +66,7 @@
             text-align: center;
             padding: 20px 40px;
             max-width: 600px;
-            max-height: 60vh; /* Prevents text from hitting the button */
+            max-height: 60vh;
             width: 100%;
             box-sizing: border-box;
             transition: opacity 0.3s ease;
@@ -93,6 +94,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             cursor: pointer;
             z-index: 10;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #fav-overlay {
@@ -101,8 +103,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.96);
+            backdrop-filter: blur(15px);
             z-index: 200;
             display: none;
             flex-direction: column;
@@ -131,18 +133,18 @@
         }
     </style>
 </head>
-<body onclick="toggleFavorite()">
+<body>
 
     <div class="top-nav">
-        <div class="nav-icon" onclick="event.stopPropagation(); showFavorites()">☰</div>
-        <div id="fav-icon" class="nav-icon" onclick="event.stopPropagation(); toggleFavorite()">♡</div>
+        <div class="nav-icon" onclick="showFavorites()">☰</div>
+        <div id="fav-icon" class="nav-icon" onclick="toggleFavorite()">♡</div>
     </div>
 
     <div id="display-container">
         <div id="quote-display" class="quote-text">Loading...</div>
     </div>
 
-    <button id="action-btn" onclick="event.stopPropagation(); nextQuote()">Go. Get. Her</button>
+    <button id="action-btn" onclick="nextQuote()">Go. Get. Her</button>
 
     <div id="fav-overlay">
         <div class="fav-header">
@@ -181,12 +183,10 @@
         }
 
         function adjustFontSize(text) {
-            // High impact scaling logic
-            let size = 2.6; // Default large size
+            let size = 2.6; 
             if (text.length > 100) size = 1.6;
             else if (text.length > 60) size = 2.0;
             else if (text.length > 30) size = 2.3;
-            
             display.style.fontSize = size + "rem";
         }
 
@@ -195,10 +195,8 @@
             setTimeout(() => {
                 currentQuote = quotes[Math.floor(Math.random() * quotes.length)];
                 display.textContent = currentQuote;
-                
                 adjustFontSize(currentQuote);
                 updateFavIcon();
-                
                 labelIndex = (labelIndex + 1) % buttonLabels.length;
                 btn.textContent = buttonLabels[labelIndex];
                 container.style.opacity = 1;

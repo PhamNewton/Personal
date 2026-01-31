@@ -37,7 +37,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Navigation Icons */
         .top-nav {
             position: absolute;
             top: 60px;
@@ -58,29 +57,28 @@
 
         #fav-icon.active { color: #ff2d55; opacity: 1; transform: scale(1.1); }
 
-        /* Main Quote Display */
         #display-container {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 40px;
-            max-width: 500px;
+            padding: 20px 40px;
+            max-width: 600px;
+            max-height: 60vh; /* Prevents text from hitting the button */
             width: 100%;
             box-sizing: border-box;
             transition: opacity 0.3s ease;
         }
 
         .quote-text {
-            font-size: 2.4rem;
             font-weight: 800;
-            line-height: 1.2;
+            line-height: 1.1;
             letter-spacing: -0.03em;
             text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            word-wrap: break-word;
         }
 
-        /* The Action Button */
         #action-btn {
             margin-bottom: 80px;
             padding: 20px 40px;
@@ -94,14 +92,9 @@
             border-radius: 50px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             cursor: pointer;
-            transition: transform 0.1s active;
-            -webkit-tap-highlight-color: transparent;
             z-index: 10;
         }
 
-        #action-btn:active { transform: scale(0.95); }
-
-        /* Favorites Overlay */
         #fav-overlay {
             position: fixed;
             top: 0;
@@ -136,8 +129,6 @@
             line-height: 1.4;
             border: 1px solid rgba(255,255,255,0.1);
         }
-
-        .close-btn { font-size: 2rem; cursor: pointer; }
     </style>
 </head>
 <body onclick="toggleFavorite()">
@@ -155,8 +146,8 @@
 
     <div id="fav-overlay">
         <div class="fav-header">
-            <span>Your Power Moves</span>
-            <span class="close-btn" onclick="closeFavorites()">✕</span>
+            <span>Power Moves</span>
+            <span onclick="closeFavorites()" style="cursor:pointer; font-size: 2rem;">✕</span>
         </div>
         <div id="fav-list-container"></div>
     </div>
@@ -177,7 +168,6 @@
         const favIcon = document.getElementById('fav-icon');
         const container = document.getElementById('display-container');
         const overlay = document.getElementById('fav-overlay');
-        const listContainer = document.getElementById('fav-list-container');
 
         async function loadData() {
             Papa.parse(sheetUrl, {
@@ -190,12 +180,25 @@
             });
         }
 
+        function adjustFontSize(text) {
+            // High impact scaling logic
+            let size = 2.6; // Default large size
+            if (text.length > 100) size = 1.6;
+            else if (text.length > 60) size = 2.0;
+            else if (text.length > 30) size = 2.3;
+            
+            display.style.fontSize = size + "rem";
+        }
+
         function nextQuote() {
             container.style.opacity = 0;
             setTimeout(() => {
                 currentQuote = quotes[Math.floor(Math.random() * quotes.length)];
                 display.textContent = currentQuote;
+                
+                adjustFontSize(currentQuote);
                 updateFavIcon();
+                
                 labelIndex = (labelIndex + 1) % buttonLabels.length;
                 btn.textContent = buttonLabels[labelIndex];
                 container.style.opacity = 1;
@@ -225,9 +228,10 @@
         }
 
         function showFavorites() {
+            const listContainer = document.getElementById('fav-list-container');
             listContainer.innerHTML = '';
             if (favorites.length === 0) {
-                listContainer.innerHTML = '<div class="fav-item">No favorites saved yet. Tap the heart on quotes you love.</div>';
+                listContainer.innerHTML = '<div class="fav-item">No favorites yet.</div>';
             } else {
                 favorites.forEach(fav => {
                     const item = document.createElement('div');
@@ -239,9 +243,7 @@
             overlay.style.display = 'flex';
         }
 
-        function closeFavorites() {
-            overlay.style.display = 'none';
-        }
+        function closeFavorites() { overlay.style.display = 'none'; }
 
         loadData();
     </script>
